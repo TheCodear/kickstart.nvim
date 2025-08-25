@@ -472,6 +472,42 @@ require('lazy').setup({
     end,
   },
 
+  -- Plugins for Test integration - and coverage integration
+  {
+    'nvim-neotest/neotest',
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-treesitter/nvim-treesitter',
+      {
+        -- This is for golang integration
+        'fredrikaverpil/neotest-golang',
+        version = '*',
+      },
+      config = function()
+        local neotest_golang_opts = {
+          runner = 'gotestsum',
+        }
+        require('neotest').setup {
+          adapters = {
+            require 'neotest-golang'(neotest_golang_opts),
+          },
+        }
+      end,
+    },
+  },
+
+  {
+    'andythigpen/nvim-coverage',
+    version = '*',
+    config = function()
+      require('coverage').setup {
+        auto_reload = true,
+      }
+    end,
+  },
+
   -- LSP Plugins
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
@@ -727,6 +763,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'gopls',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
