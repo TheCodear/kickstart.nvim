@@ -294,6 +294,9 @@ require('lazy').setup({
     },
   },
 
+  -- Git Fugitive for native integration with Git
+  'tpope/vim-fugitive',
+
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
   -- This is often very useful to both group configuration, as well as handle
@@ -812,7 +815,7 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
-        --
+        terraformls = {},
 
         lua_ls = {
           -- cmd = { ... },
@@ -846,6 +849,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'tflint', -- Linting terraform code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
