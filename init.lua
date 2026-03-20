@@ -259,6 +259,15 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'chomosuke/typst-preview.nvim',
+    lazy = false,
+    version = '1.*',
+    opts = {
+      dependencies_bin = { ['tinymist'] = 'tinymist' },
+    },
+  },
+
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -816,6 +825,17 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         terraformls = {},
+
+        -- this is used for typst documents
+        tinymist = {
+          cmd = { 'tinymist' },
+          filetypes = { 'typst' },
+          settings = {
+            lint = {
+              enabled = true,
+            },
+          },
+        },
 
         lua_ls = {
           -- cmd = { ... },
