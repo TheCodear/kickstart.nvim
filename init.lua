@@ -309,7 +309,13 @@ require('lazy').setup({
   },
 
   -- Git Fugitive for native integration with Git
-  'tpope/vim-fugitive',
+  {
+    'tpope/vim-fugitive',
+    config = function()
+
+      -- specify keymaps for fugitive
+    end,
+  },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -508,22 +514,123 @@ require('lazy').setup({
       'nvim-neotest/nvim-nio',
       'nvim-lua/plenary.nvim',
       'antoinemadec/FixCursorHold.nvim',
-      'nvim-treesitter/nvim-treesitter',
+      { 'nvim-treesitter/nvim-treesitter', branch = 'main' },
+
+      'nvim-neotest/neotest-plenary',
+      'nvim-neotest/neotest-vim-test',
+
       {
         -- This is for golang integration
         'fredrikaverpil/neotest-golang',
         version = '*',
+        dependencies = {
+          'andythigpen/nvim-coverage',
+          'leoluz/nvim-dap-go',
+        },
       },
-      config = function()
-        local neotest_golang_opts = {
-          runner = 'gotestsum',
-        }
-        require('neotest').setup {
-          adapters = {
-            require 'neotest-golang'(neotest_golang_opts),
-          },
-        }
-      end,
+    },
+    opts = function(_, opts)
+      opts.adapters = opts.adapters or {}
+      opts.adapters['neotest-golang'] = {
+        go_test_args = {
+          '-v',
+          '-coverprofile=' .. vim.fn.getcwd() .. '/coverage.out',
+        },
+      }
+    end,
+    config = function(_, opts)
+      if opts.adapters then
+        local adapters = {}
+        for name, config in pairs(opts.adapters or {}) do
+          if type(name) == 'number' then
+            if type(config) == 'string' then
+              config = require(config)
+            end
+            adapters[#adapters + 1] = config
+          elseif config ~= false then
+            local adapter = require(name)
+            if type(config) == 'table' and not vim.tbl_isempty(config) then
+              local meta = getmetatable(adapter)
+              if adapter.setup then
+                adapter.setup(config)
+              elseif adapter.adapter then
+                adapter.adapter(config)
+                adapter = adapter.adapter
+              elseif meta and meta.__call then
+                adapter(config)
+              else
+                error('Adapter ' .. name .. ' does not support setup')
+              end
+            end
+            adapters[#adapters + 1] = adapter
+          end
+        end
+        opts.adapters = adapters
+      end
+
+      require('neotest').setup(opts)
+    end,
+    keys = {
+      {
+        '<leader>ta',
+        function() require('neotest').run.attach() end,
+        desc = '[t]est [a]ttach',
+      },
+      {
+        '<leader>tf',
+        function() require('neotest').run.run(vim.fn.expand '%') end,
+        desc = '[t]est run [f]ile',
+      },
+      {
+        '<leader>tA',
+        function() require('neotest').run.run(vim.uv.cwd()) end,
+        desc = '[t]est [A]ll files',
+      },
+      {
+        '<leader>tS',
+        function() require('neotest').run.run { suite = true } end,
+        desc = '[t]est [S]uite',
+      },
+      {
+        '<leader>tn',
+        function() require('neotest').run.run() end,
+        desc = '[t]est [n]earest',
+      },
+      {
+        '<leader>tl',
+        function() require('neotest').run.run_last() end,
+        desc = '[t]est [l]ast',
+      },
+      {
+        '<leader>ts',
+        function() require('neotest').summary.toggle() end,
+        desc = '[t]est [s]ummary',
+      },
+      {
+        '<leader>to',
+        function() require('neotest').output.open { enter = true, auto_close = true } end,
+        desc = '[t]est [o]utput',
+      },
+      {
+        '<leader>tO',
+        function() require('neotest').output_panel.toggle() end,
+        desc = '[t]est [O]utput panel',
+      },
+      {
+        '<leader>tt',
+        function() require('neotest').run.stop() end,
+        desc = '[t]est [t]erminate',
+      },
+      {
+        '<leader>td',
+        function() require('neotest').run.run { suite = false, strategy = 'dap' } end,
+        desc = 'Debug nearest test',
+      },
+      {
+        '<leader>tD',
+        function() require('neotest').run.run { vim.fn.expand '%', strategy = 'dap' } end,
+        desc = 'Debug current file',
+      },
     },
   },
 
@@ -754,10 +861,19 @@ require('lazy').setup({
         -- ts_ls = {},
         terraformls = {},
 
+        -- opa / rego policies
+        regal = {},
+
         -- this is used for typst documents
         tinymist = {
           cmd = { 'tinymist' },
           filetypes = { 'typst' },
+        },
+
+        lua_ls = {
+          -- cmd = { ... },
+          -- filetypes = { ... },
+          -- capabilities = {},
           settings = {
             lint = {
               enabled = true,
