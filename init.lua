@@ -268,6 +268,13 @@ require('lazy').setup({
     end,
   },
 
+  -- Preview markdown files
+  {
+    'henriklovhaug/Preview.nvim',
+    cmd = { 'Preview' },
+    config = function() require('preview').setup() end,
+  },
+
   {
     'chomosuke/typst-preview.nvim',
     lazy = false,
@@ -416,11 +423,12 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            i = { ['<C-d>'] = require('telescope.actions').delete_buffer },
+            n = { ['<C-d>'] = require('telescope.actions').delete_buffer, ['dd'] = require('telescope.actions').delete_buffer },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = { require('telescope.themes').get_dropdown() },
@@ -543,9 +551,7 @@ require('lazy').setup({
         local adapters = {}
         for name, config in pairs(opts.adapters or {}) do
           if type(name) == 'number' then
-            if type(config) == 'string' then
-              config = require(config)
-            end
+            if type(config) == 'string' then config = require(config) end
             adapters[#adapters + 1] = config
           elseif config ~= false then
             local adapter = require(name)
@@ -1145,7 +1151,27 @@ require('lazy').setup({
     branch = 'main',
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
     config = function()
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'go' }
+      local parsers = {
+        'bash',
+        'c',
+        'cpp',
+        'diff',
+        'dockerfile',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'python',
+        'query',
+        'vim',
+        'vimdoc',
+        'go',
+        'latex',
+        'bibtex',
+        'yaml',
+        'json',
+      }
       require('nvim-treesitter').install(parsers)
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
